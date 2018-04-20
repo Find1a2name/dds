@@ -1,6 +1,8 @@
 module dds(clkin,clk_dvd,out,ke,ku,kd,kr,kl,sel1,sel2,sel3,sel4,sel5,sel6,led);
 input clkin;
-output [7:0] out;
+output reg [7:0] out;//真正的输出
+Reg [15:0] aout; //用于调幅的中间寄存器
+wire [7:0] wout; //连在外置数据的线
 
 output clk_dvd = 1;
 reg [4:0] cnt = 0;
@@ -15,6 +17,10 @@ reg [19:0] a;
 reg b = 0;
 reg [9:0] c,d;
 reg apl = 1;
+reg [6:0] = 7'd10;
+
+
+
 //shumaguan
 input ke,ku,kd,kl,kr;
 
@@ -113,7 +119,7 @@ end
 
 //aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
-abc u1(.address(address),.clock(clk_dvd),.q(out));
+abc u1(.address(address),.clock(clk_dvd),.q(rout));
 //
 always @(posedge clkin)
 begin
@@ -128,80 +134,7 @@ begin
 end
 
 
-/*注释掉
-always @(negedge clk_dvd)
-begin
-case(state)
 
-	if(ttt == 0 )
-	begin
-	
-		tt <= 1'd1;
-		a <= Win-7'd100;		//改了
-		address <= 0;
-	end
-	if(tt == 1 && ttt == 1)
-	begin
-		if (a > 100)
-		begin
-			a <= a-100;
-			b <= b+1;
-		end
-		else
-		begin
-			c <= a;
-			d <= a;
-			tt <= 2;
-		end
-	end
-	if(tt == 2)
-		if ((address+b+1)<=999)
-		begin
-			if(c<100)
-			begin
-				address <= address+b;
-				c <= c+d;
-			end
-			else
-			begin
-				address <= address+b+1'd1;
-				c <= c-100+d;
-				
-			end
-		end
-		else
-		begin
-			if((address+b)<=999)
-			begin
-				if(c<100)
-				begin
-					address <= address+b;
-					c <= c+d;
-				end
-				else
-				begin
-					address <= 0;
-					c <= c-100+d;
-				end
-			end
-			else
-			begin
-				if(c<100)
-				begin
-					address <= address+b-1000;
-					c <= c+d;
-				end
-				else
-				begin
-					address <= address+b-999;
-					c <= c+d-100;
-				end
-			end
-			
-		end
-		
-end
-*/
 
 always @(negedge clkin)
 
@@ -209,7 +142,7 @@ always @(negedge clkin)
 begin
 
  
-if (apl == 1)
+if (apl == 1) //调频
 begin
 datad = data;			
 	if ((ku==0) || (fd1>0))
@@ -226,12 +159,12 @@ datad = data;
 				if(wwait1==0)
 				begin
 					case(sell)
-					1:begin if(data[23:20] == 9) data[23:20]<=0;else data[23:20]<=data[23:20]+4'b1;end
-					2:begin if(data[19:16] == 4) data[19:16]<=0;else data[19:16]<=data[19:16]+4'b1;end
-					3:begin if(data[15:12] == 9) data[15:12]<=0;else data[15:12]<=data[15:12]+4'b1;end
-					4:begin if(data[11:8] == 9) data[11:8]<=0;else data[11:8]<=data[11:8]+4'b1;end
-					5:begin if(data[7:4] == 9) data[7:4]<=0;else data[7:4]<=data[7:4]+4'b1;end
-					6:begin if(data[3:0] == 9) data[3:0]<=0;else data[3:0]<=data[3:0]+4'b1;end
+					1:begin if(data[23:20] == 9) data[23:20]<=0; else data[23:20]<=data[23:20]+4'b1; end
+					2:begin if(data[19:16] == 4) data[19:16]<=0; else data[19:16]<=data[19:16]+4'b1; end
+					3:begin if(data[15:12] == 9) data[15:12]<=0; else data[15:12]<=data[15:12]+4'b1; end
+					4:begin if(data[11:8] == 9)  data[11:8]<=0;  else data[11:8]<=data[11:8]+4'b1;   end
+					5:begin if(data[7:4] == 9)   data[7:4]<=0;   else data[7:4]<=data[7:4]+4'b1;     end
+					6:begin if(data[3:0] == 9)   data[3:0]<=0;   else data[3:0]<=data[3:0]+4'b1;     end
 					endcase
 					wwait1 <= 1;
 					fd1 <= 0;
@@ -241,109 +174,110 @@ datad = data;
 		end
 	end
 	
-if ((kd==0) || (fd2>0))
-begin
-	if (fd2<1000000)
-		fd2 <= fd2+1;
-	else
+	if ((kd==0) || (fd2>0))
 	begin
-		if(kd == 0)
-			wwait2 <= 0;
+		if (fd2<1000000)
+			fd2 <= fd2+1;
 		else
 		begin
-			if(wwait2==0)
+			if(kd == 0)
+				wwait2 <= 0;
+			else
 			begin
-			case(sell)
-			1:begin if(data[23:20] == 0) data[23:20]<=9;else data[23:20]<=data[23:20]-4'b1;end
-			2:begin if(data[19:16] == 0) data[19:16]<=4;else data[19:16]<=data[19:16]-4'b1;end
-			3:begin if(data[15:12] == 0) data[15:12]<=9;else data[15:12]<=data[15:12]-4'b1;end
-			4:begin if(data[11:8] == 0) data[11:8]<=9;else data[11:8]<=data[11:8]-4'b1;end
-			5:begin if(data[7:4] == 0) data[7:4]<=9;else data[7:4]<=data[7:4]-4'b1;end
-			6:begin if(data[3:0] == 0) data[3:0]<=9;else data[3:0]<=data[3:0]-4'b1;end
-			endcase
-			wwait2 <= 1;
-			fd2 <= 0;
-			t = 0;
+				if(wwait2==0)
+				begin
+				case(sell)
+				1:begin if(data[23:20] == 0) data[23:20]<=9; else data[23:20]<=data[23:20]-4'b1; end
+				2:begin if(data[19:16] == 0) data[19:16]<=4; else data[19:16]<=data[19:16]-4'b1; end
+				3:begin if(data[15:12] == 0) data[15:12]<=9; else data[15:12]<=data[15:12]-4'b1; end
+				4:begin if(data[11:8] == 0)  data[11:8]<=9;  else data[11:8]<=data[11:8]-4'b1;   end
+				5:begin if(data[7:4] == 0)   data[7:4]<=9;   else data[7:4]<=data[7:4]-4'b1;     end
+				6:begin if(data[3:0] == 0)   data[3:0]<=9;   else data[3:0]<=data[3:0]-4'b1;     end
+				endcase
+				wwait2 <= 1;
+				fd2 <= 0;
+				t = 0;
+				end
 			end
+		end
+	end
+
+	if ((kr==0) || (fd3>0))
+	begin
+		if(fd3<1000000)
+			fd3 <= fd3+1;
+		else
+		begin
+			if(kr==0)
+			wwait3 <= 0;
+			else
+				if(wwait3 == 0)
+					begin
+					if (sell==6)
+					begin
+						sell <= 1;
+						//t = 0;  移位不需要重新输入显示值
+					end
+					else
+					begin
+						sell<=sell+1'b1;
+						//t = 0;  移位不需要重新输入显示值
+					end
+					fd3 <= 0;
+					wwait3 <= 1;
+				end
+		end
+	end
+
+	if ((kl==0) || (fd4>0))
+	begin
+		if(fd4<1000000)
+			fd4 <= fd4+1;
+		else
+		begin
+			if(kl==0)
+				wwait4 <= 0;
+			else
+				if(wwait4 == 0)
+				begin
+					if (sell==1)
+					begin
+						sell <= 6;
+					//t = 0;
+					end
+					
+					else
+					begin
+						sell<=sell-1'b1;
+						//t = 0;
+					end
+					fd4 <= 0;
+					wwait4 <= 1;
+				end
+		end
+	end
+
+	if ((ke==0) || (fd5>0))
+	begin
+		if(fd5<1000000)
+			fd5 <= fd5+1;
+		else
+		begin
+			if(ke==0)
+				wwait5 <= 0;
+			else
+				if(wwait5==0)
+				begin
+					wwait5 <= 1;
+					fd5 <= 0;	
+					apl = 0;							
+				end
 		end
 	end
 end
 
-if ((kr==0) || (fd3>0))
-begin
-	if(fd3<1000000)
-	fd3 <= fd3+1;
-	else
-	begin
-		if(kr==0)
-		wwait3 <= 0;
-		else
-			if(wwait3 == 0)
-			begin
-				if (sell==6)
-				begin
-					sell <= 1;
-					t = 0;
-				end
-				else
-				begin
-					sell<=sell+1'b1;
-					t = 0;
-				end
-				fd3 <= 0;
-				wwait3 <= 1;
-			end
-	end
-end
 
-if ((kl==0) || (fd4>0))
-begin
-	if(fd4<1000000)
-		fd4 <= fd4+1;
-	else
-	begin
-		if(kl==0)
-			wwait4 <= 0;
-		else
-			if(wwait4 == 0)
-			begin
-				if (sell==1)
-				begin
-					sell <= 6;
-					t = 0;
-				end
-					
-				else
-				begin
-					sell<=sell-1'b1;
-					t = 0;
-				end
-				fd4 <= 0;
-				wwait4 <= 1;
-			end
-	end
-end
-
-if ((ke==0) || (fd5>0))
-begin
-	if(fd5<1000000)
-		fd5 <= fd5+1;
-	else
-	begin
-		if(ke==0)
-			wwait5 <= 0;
-		else
-			if(wwait5==0)
-			begin
-				wwait5 <= 1;
-				fd5 <= 0;	
-				apl = 0;							
-			end
-	end
-end
-end
-
-if(apl == 0)
+if(apl == 0)  // 调幅
 begin
 datad = dataa;
 	if ((ke==0) || (fd5>0))
@@ -377,28 +311,42 @@ datad = dataa;
 			begin
 				if(wwait1==0)
 				begin
-					//case(sell)
-					//1:begin if(dataa[23:20] == 9) dataa[23:20]<=0;else dataa[23:20]<=dataa[23:20]+4'b1;end
-					//2:begin if(dataa[19:16] == 4) dataa[19:16]<=0;else dataa[19:16]<=dataa[19:16]+4'b1;end
-					//3:begin if(dataa[15:12] == 9) dataa[15:12]<=0;else dataa[15:12]<=dataa[15:12]+4'b1;end
-					//4:begin if(dataa[11:8] == 9) dataa[11:8]<=0;else dataa[11:8]<=dataa[11:8]+4'b1;end
-					//5:begin if(dataa[7:4] == 9) dataa[7:4]<=0;else dataa[7:4]<=dataa[7:4]+4'b1;end
-					//6:begin if(dataa[3:0] == 9) dataa[3:0]<=0;else dataa[3:0]<=dataa[3:0]+4'b1;end
-
-					//endcase
-					if (dataa[3:0] == 9) 
+					
+					
+					if (data[11:8]==0)
 					begin
-						dataa[3:0]<=1;
-						dataa[7:4]<=dataa[7:4]+1;
-						ap <= ap+1;
-					end	
+						if (dataa[3:0] == 9) 
+						begin
+							
+							dataa[3:0]<=0;
+							ap <= ap+1;
+							if (dataa[7:4]<9)
+							begin
+								dataa[7:4] <= dataa[7:4]+1;
+							
+							end
+							else
+							begin
+								dataa[7:4] <= 0;
+					 			dataa[11:8]<= 1;
+							end
+						end
+					end
 					else
-						dataa[3:0]<=dataa[3:0]+1;
-						ap = ap+1;//如何乘到out上
+					begin
+						dataa[3:0] <= 0;
+						dataa[7:4] <= 1;
+						dataa[11:8]<= 0;
+						ap = 10 ; 
+					end
+						
+						else
+							dataa[3:0]<=dataa[3:0]+1;
+							ap = ap+1;//如何乘到out上
 						
 					wwait1 <= 1;
 					fd1 <= 0;
-					t = 0;
+					
 				end
 			end
 		end
@@ -409,6 +357,13 @@ datad = dataa;
 
 end
 
+
+//调幅代码
+	aout = ap*wout;
+	out = aout[15:8];
+
+
+//调整频率的代码
 	if (t == 0)
 	begin
 		Win = 0;
@@ -429,13 +384,13 @@ end
 		
 		ttt = 1;
 		tt <= 1'd1;
-		a <= Win-7'd100;		//改了
+		a <= Win;  //-7'd100;		//改了
 		address <= 0;
 	end
 
 	if(tt == 1 && ttt == 1)
 	begin
-		if (a > 100)
+		if (a >= 100)
 		begin
 			a <= a-100;
 			b <= b+1;
@@ -458,15 +413,23 @@ end
 			keycnt = 0;
 			if ((address+b+1)<=999)
 			begin
-				if(c<100)
+				if( (c+d)<100 )
 				begin
-					address <= address+b;
+					if((c<=50) && ((c+d)>50))
+						address <= address+b+1;
+					else
+						address <= address+b;
+
 					c <= c+d;
 				end
 				else
 				begin
-					address <= address+b+1'd1;
-					c <= c-100+d;
+					if((c<=50))
+						address <= address+b+1; 	
+					else
+						address <= address+b;
+	
+					c <= c+d-100;
 					
 				end
 			end
@@ -474,76 +437,74 @@ end
 			begin
 				if((address+b)<=999)
 				begin
-					if(c<100)
+					if((c+d)<100)
 					begin
-						address <= address+b;
+						if((c<=50) && ((c+d>50)))
+						begin
+							address <= address+b-999;
+							
+						end
+						else 
+							address <= address+b;
 						c <= c+d;
 					end
 					else
 					begin
-						address <= 0;
+						if((c<=50) && ((c+d)>50))
+							address <= address+b-999;
+						else
+							address <= address+b;
+				
 						c <= c-100+d;
 					end
 				end
 				else
 				begin
-					if(c<100)
+					if((c+d)<100)
 					begin
-						address <= address+b-1000;
+						if((c<=50) && ((c+d>50)))
+							address <= address+b-999;
+						else
+							address <= address+b-1000;
 						c <= c+d;
+	
 					end
 					else
 					begin
-						address <= address+b-999;
+						if((c<=50) && ((c+d)>50))
+							address <= address+b-999;
+						else
+							address <= address+b-1000;
+					
 						c <= c+d-100;
 					end
 				end
-			
+				
 			end
 		end
 	end	
+
+
+
+
+
+
+
+
+
+
+
+
+
 end
 
-//2'h2:begin
-//ttt = 1;
-//if ((ke==0) || (fd>0))
-//	begin
-	
-//	if(fd<1000000)
-//		fd <= fd+1;
-//	else
-//	begin
-//		if(ke==0)
-//		wwait <= 0;
-//		else
-//			if(wwait==0)
-//			begin
-//				wwait <= 1;
-//				
-//				state <= 2'h0;
-//				fd <= 0;
-				
-//			end
-//	end	
-//	end
-//end
 
-//endcase
-	
-	
-end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 
+	
+	
+	
+	
+	
 
 endmodule 
